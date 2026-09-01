@@ -12,7 +12,7 @@ class ReportDbAdapter:
         WHERE COALESCE(btrim(pdf_url), '') <> ''
           AND COALESCE(btrim(gemini_summary), '') = ''
           AND report_unique_key IS NOT NULL
-        ORDER BY report_id
+        ORDER BY report_id DESC
         LIMIT %(limit)s
     """
 

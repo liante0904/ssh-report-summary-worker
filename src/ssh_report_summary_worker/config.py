@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+import shutil
 
 
 DEFAULT_SECRET_FILE = Path("/home/ubuntu/secrets/workspace/external.reports-hub/apps/scrapers/ssh-report-summary-worker/secrets.json")
@@ -49,7 +50,7 @@ class Config:
         load_external_secrets()
         values = {
             "batch_limit": int(os.getenv("SUMMARY_BATCH_LIMIT", "10")),
-            "agy_command": os.getenv("AGY_COMMAND", "agy"),
+            "agy_command": os.getenv("AGY_COMMAND") or shutil.which("agy") or "/home/ubuntu/.local/bin/agy",
             "agy_timeout_seconds": int(os.getenv("AGY_TIMEOUT_SECONDS", "300")),
             "agy_retries": int(os.getenv("AGY_RETRIES", "2")),
             "pdf_timeout_seconds": int(os.getenv("PDF_TIMEOUT_SECONDS", "30")),

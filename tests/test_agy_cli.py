@@ -52,3 +52,14 @@ def test_accepts_agy_metadata_wrapper(tmp_path, monkeypatch):
     wrapped = {"status": "success", "structured_output": valid_output(), "conversation_id": "x"}
     monkeypatch.setattr("ssh_report_summary_worker.agy_cli.subprocess.run", lambda *a, **k: type("C", (), {"returncode": 0, "stdout": json.dumps(wrapped), "stderr": ""})())
     assert AgyClient("agy", schema).summarize(report(), tmp_path / "x.pdf").summary == "summary"
+
+
+def test_accepts_response_json_with_tool_metadata(tmp_path, monkeypatch):
+    schema = tmp_path / "schema.json"
+    schema.write_text(Path("schemas/summary_output.schema.json").read_text())
+    wrapped = {
+        "status": "SUCCESS",
+        "response": json.dumps({**valid_output(), "toolAction": "Finishing task"}),
+    }
+    monkeypatch.setattr("ssh_report_summary_worker.agy_cli.subprocess.run", lambda *a, **k: type("C", (), {"returncode": 0, "stdout": json.dumps(wrapped), "stderr": ""})())
+    assert AgyClient("agy", schema).summarize(report(), tmp_path / "x.pdf").summary == "summary"

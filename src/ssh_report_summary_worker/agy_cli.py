@@ -70,10 +70,15 @@ class AgyClient:
                     # metadata. Keep support for a bare schema object too.
                     value = raw.get("structured_output")
                     response = raw.get("response")
-                    if value is None and isinstance(response, dict):
-                        value = response
                     if value is None and isinstance(response, str) and response.strip():
                         value = json.loads(response)
+                    if value is None and isinstance(response, dict):
+                        value = response
+                    # Some AGY responses omit structured_output and put the
+                    # schema payload in response alongside tool metadata.
+                    if isinstance(value, dict):
+                        allowed = set(self.validator.schema.get("properties", {}))
+                        value = {key: item for key, item in value.items() if key in allowed}
                     if value is None:
                         value = raw
                     if not isinstance(value, dict):

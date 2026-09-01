@@ -10,9 +10,10 @@ class FakeManager:
 def test_read_is_bounded_and_excludes_missing_pdf():
     fake = FakeManager()
     ReportDbAdapter(fake).fetch_pending(7)
-    assert fake.calls[0][2] == {"limit": 7}
+    assert fake.calls[0][2] == {"limit": 7, "report_type": "COMPANY"}
     assert "pdf_url" in fake.calls[0][1]
     assert "LIMIT %(limit)s" in fake.calls[0][1]
+    assert "report_type = %(report_type)s" in fake.calls[0][1]
 
 
 def test_write_uses_both_identifiers_and_empty_summary_guard():

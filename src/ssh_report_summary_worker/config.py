@@ -35,6 +35,7 @@ def load_external_secrets(path: Path | None = None) -> Path | None:
 @dataclass(frozen=True)
 class Config:
     batch_limit: int = 10
+    report_type: str = "COMPANY"
     dry_run: bool = True
     agy_command: str = "agy"
     agy_timeout_seconds: int = 300
@@ -50,6 +51,7 @@ class Config:
         load_external_secrets()
         values = {
             "batch_limit": int(os.getenv("SUMMARY_BATCH_LIMIT", "10")),
+            "report_type": os.getenv("SUMMARY_REPORT_TYPE", "COMPANY"),
             "agy_command": os.getenv("AGY_COMMAND") or shutil.which("agy") or "/home/ubuntu/.local/bin/agy",
             "agy_timeout_seconds": int(os.getenv("AGY_TIMEOUT_SECONDS", "300")),
             "agy_retries": int(os.getenv("AGY_RETRIES", "2")),

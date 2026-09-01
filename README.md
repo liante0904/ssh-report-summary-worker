@@ -7,6 +7,7 @@
 ## 범위
 
 - PostgreSQL read view에서 아직 요약되지 않은 PDF 리포트 조회
+- 기본적으로 `report_type=COMPANY` 종목 레포트만 조회 (`SUMMARY_REPORT_TYPE`으로 변경 가능)
 - PDF 다운로드 및 `%PDF-`/파일 크기 검증
 - AGY CLI subprocess 호출
 - JSON schema 검증 후 `report_id` 또는 `report_unique_key`로 저장

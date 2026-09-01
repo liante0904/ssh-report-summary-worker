@@ -19,8 +19,35 @@ class AgyError(RuntimeError):
 
 def build_prompt(report: Report, pdf_path: Path) -> str:
     return (
-        "Summarize the attached Korean financial research report as strict JSON. "
-        "Use the supplied schema exactly. Do not invent facts; cite source page numbers.\n"
+        "You are a senior Korean equity research analyst. Analyze the attached PDF and "
+        "return strict JSON using the supplied schema. The database summary must be "
+        "decision-useful, evidence-based, and specific rather than a generic abstract.\n"
+        "\nRequired analysis for every report:\n"
+        "1) State the report's core thesis and the exact conclusion.\n"
+        "2) Extract the key numerical evidence: dates/periods, growth or performance, "
+        "flows, holdings, weights, target prices, valuation, and benchmark comparison "
+        "when present. Preserve units and direction.\n"
+        "3) Identify the named companies, ETFs, sectors, and the concrete catalyst or "
+        "mechanism linking the evidence to the conclusion.\n"
+        "4) Explain what changed versus the prior period or prevailing view, if stated.\n"
+        "5) Give an actionable investor takeaway: beneficiary/watchlist, time horizon, "
+        "what would confirm the thesis, and what would invalidate it. This is analysis, "
+        "not personalized investment advice.\n"
+        "6) List material risks, caveats, missing data, and any uncertainty.\n"
+        "\nETF-specific requirements when applicable:\n"
+        "- Separate ETF flow/inclusion data from price-performance results.\n"
+        "- Name the relevant ETF and constituent stocks; include inclusion/exclusion "
+        "direction, observation window, and counts/weights if available.\n"
+        "- Distinguish reported results from the report author's proposed strategy.\n"
+        "\nWriting requirements for the summary field:\n"
+        "- Write in Korean, with compact headings: 핵심 결론 / 근거와 수치 / 수혜 종목·산업 / "
+        "투자 체크포인트 / 리스크.\n"
+        "- Do not start with boilerplate such as '본 보고서는 ... 분석합니다'.\n"
+        "- Every important number, named stock, or causal claim must have a page citation "
+        "in the form [p.N]. If the PDF does not support it, say '자료에 없음' rather than "
+        "guessing.\n"
+        "- Keep key_points focused on concrete findings and risks focused on falsifiable "
+        "downside conditions. Use the supplied schema exactly.\n"
         f"Report ID: {report.report_id}\n"
         f"Report key: {report.report_unique_key}\n"
         f"Title: {report.article_title}\n"
@@ -31,12 +58,13 @@ def build_prompt(report: Report, pdf_path: Path) -> str:
 
 
 class AgyClient:
-    def __init__(self, command: str, schema_path: Path, timeout: int = 300, retries: int = 2, sleep=time.sleep):
+    def __init__(self, command: str, schema_path: Path, timeout: int = 300, retries: int = 2, sleep=time.sleep, model: str | None = None):
         self.command = command
         self.schema_path = schema_path
         self.timeout = timeout
         self.retries = retries
         self.sleep = sleep
+        self.model = model or os.getenv("AGY_MODEL", "gemini-3.1-pro-high")
         self.validator = Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
     def summarize(self, report: Report, pdf_path: Path) -> SummaryResult:
@@ -44,6 +72,7 @@ class AgyClient:
             self.command, "--print", build_prompt(report, pdf_path),
             "--output-format", "json", "--json-schema", str(self.schema_path),
             "--add-dir", str(pdf_path.parent),
+            "--model", self.model,
         ]
         log_file = os.getenv("AGY_LOG_FILE")
         if log_file:

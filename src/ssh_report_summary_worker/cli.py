@@ -19,7 +19,7 @@ def main() -> int:
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     config = Config.from_env(batch_limit=args.limit, dry_run=not args.write_db, schema_path=args.schema)
-    result = Worker(config, ReportDbAdapter(report_type=config.report_type), AgyClient(config.agy_command, config.schema_path, config.agy_timeout_seconds, config.agy_retries)).run(args.report_id, args.force)
+    result = Worker(config, ReportDbAdapter(report_type=config.report_type), AgyClient(config.agy_command, config.schema_path, config.agy_timeout_seconds, config.agy_retries, model=config.agy_model)).run(args.report_id, args.force)
     print(json.dumps(result, ensure_ascii=False, default=str))
     return 1 if result["failed"] else 0
 

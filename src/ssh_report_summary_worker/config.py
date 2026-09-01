@@ -38,6 +38,7 @@ class Config:
     report_type: str = "COMPANY"
     dry_run: bool = True
     agy_command: str = "agy"
+    agy_model: str = "gemini-3.1-pro-high"
     agy_timeout_seconds: int = 300
     agy_retries: int = 2
     pdf_timeout_seconds: int = 30
@@ -53,6 +54,7 @@ class Config:
             "batch_limit": int(os.getenv("SUMMARY_BATCH_LIMIT", "10")),
             "report_type": os.getenv("SUMMARY_REPORT_TYPE", "COMPANY"),
             "agy_command": os.getenv("AGY_COMMAND") or shutil.which("agy") or "/home/ubuntu/.local/bin/agy",
+            "agy_model": os.getenv("AGY_MODEL", "gemini-3.1-pro-high"),
             "agy_timeout_seconds": int(os.getenv("AGY_TIMEOUT_SECONDS", "300")),
             "agy_retries": int(os.getenv("AGY_RETRIES", "2")),
             "pdf_timeout_seconds": int(os.getenv("PDF_TIMEOUT_SECONDS", "30")),

@@ -27,6 +27,18 @@ class ReportDbAdapter:
     def fetch_pending(self, limit: int) -> list[dict[str, Any]]:
         return self.manager._fetchall(self.read_sql, {"limit": limit, "report_type": self.report_type})
 
+    def fetch_by_report_id(self, report_id: int, force: bool = False) -> list[dict[str, Any]]:
+        sql = self.read_sql.replace(
+            "AND report_unique_key IS NOT NULL",
+            "AND report_unique_key IS NOT NULL\n          AND report_id = %(report_id)s",
+        )
+        if force:
+            sql = sql.replace("AND COALESCE(btrim(gemini_summary), '') = ''", "")
+        return self.manager._fetchall(
+            sql,
+            {"limit": 1, "report_type": self.report_type, "report_id": report_id},
+        )
+
     def save_summary(self, report_id: int, report_unique_key: str, summary: str, model: str) -> int:
         result = self.manager._execute(
             """

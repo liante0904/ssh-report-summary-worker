@@ -15,8 +15,8 @@ class Worker:
     def __init__(self, config: Config, db: ReportDbAdapter, agy: AgyClient):
         self.config, self.db, self.agy = config, db, agy
 
-    def run(self) -> dict:
-        rows = self.db.fetch_pending(self.config.batch_limit)
+    def run(self, report_id: int | None = None, force: bool = False) -> dict:
+        rows = self.db.fetch_by_report_id(report_id, force=force) if report_id is not None else self.db.fetch_pending(self.config.batch_limit)
         result = {"dry_run": self.config.dry_run, "selected": len(rows), "succeeded": 0, "skipped": 0, "failed": 0, "items": []}
         for row in rows:
             report = Report.from_row(row)

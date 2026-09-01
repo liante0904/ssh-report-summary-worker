@@ -24,3 +24,10 @@ def test_write_uses_both_identifiers_and_empty_summary_guard():
     assert "report_id = %s" in call[1]
     assert "report_unique_key = %s" in call[1]
     assert "gemini_summary" in call[1]
+
+
+def test_single_report_query_uses_report_id():
+    fake = FakeManager()
+    ReportDbAdapter(fake).fetch_by_report_id(259835444)
+    assert fake.calls[0][2]["report_id"] == 259835444
+    assert "report_id = %(report_id)s" in fake.calls[0][1]

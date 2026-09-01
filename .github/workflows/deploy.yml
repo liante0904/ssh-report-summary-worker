@@ -43,11 +43,12 @@ jobs:
             git -C "$DEPLOY_DIR" fetch --force origin main
             git -C "$DEPLOY_DIR" checkout --detach "$EXPECTED_SHA"
 
-            test -x "$(command -v agy)"
+            test -x "$HOME/.local/bin/agy"
             test -f "$HOME/secrets/workspace/external.reports-hub/apps/scrapers/ssh-report-summary-worker/secrets.json"
 
             python3 -m compileall -q "$DEPLOY_DIR/src"
-            PYTHONPATH="$DEPLOY_DIR/src" python3 -m ssh_report_summary_worker.cli --help >/dev/null
+            PYTHONPATH="$DEPLOY_DIR/src:/home/ubuntu/workspace/lib/ssh_library" \
+              python3 -m ssh_report_summary_worker.cli --help >/dev/null
 
             echo "summary worker deployed at $DEPLOY_DIR"
             echo "revision: $(git -C "$DEPLOY_DIR" rev-parse HEAD)"

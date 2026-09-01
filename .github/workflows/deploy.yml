@@ -1,0 +1,54 @@
+name: Deploy Summary Worker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy source and verify runtime via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          PROJECT_DIR: ${{ secrets.PROJECT_DIR }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: EXPECTED_SHA,PROJECT_DIR,REPO_OWNER,REPO_NAME
+          script: |
+            set -eu
+
+            DEPLOY_DIR="${PROJECT_DIR:-/home/ubuntu/workspace/external.reports-hub/apps/scrapers/ssh-report-summary-worker}"
+            REPO_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
+
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+              mkdir -p "$(dirname "$DEPLOY_DIR")"
+              git clone "$REPO_URL" "$DEPLOY_DIR"
+            fi
+
+            git -C "$DEPLOY_DIR" fetch --force origin main
+            git -C "$DEPLOY_DIR" checkout --detach "$EXPECTED_SHA"
+
+            test -x "$(command -v agy)"
+            test -f "$HOME/secrets/workspace/external.reports-hub/apps/scrapers/ssh-report-summary-worker/secrets.json"
+
+            python3 -m compileall -q "$DEPLOY_DIR/src"
+            PYTHONPATH="$DEPLOY_DIR/src" python3 -m ssh_report_summary_worker.cli --help >/dev/null
+
+            echo "summary worker deployed at $DEPLOY_DIR"
+            echo "revision: $(git -C "$DEPLOY_DIR" rev-parse HEAD)"
+            echo "AGY and external secrets are available"

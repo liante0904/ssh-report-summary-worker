@@ -37,8 +37,9 @@ AGY는 설치된 CLI의 print 인터페이스(`agy --print ... --output-format j
 
 - `.github/workflows/test.yml`: Python 3.10/3.12 deterministic test gate
 - `.github/workflows/build-artifact.yml`: `main` push 또는 수동 실행 시 테스트 후 source artifact 생성
+- `.github/workflows/deploy.yml`: `main` push 시 SSH로 서버에 source를 배포하고 AGY/외부 secrets/CLI runtime을 검증
 
-운영 Docker 배포 workflow는 AGY 실행 파일을 컨테이너에 공급하는 방식과 운영 worker 실행 대상이 확정된 뒤 추가합니다. 현재 CD는 검증된 source artifact 생성까지만 수행하며, 운영 DB write나 서버 재기동은 하지 않습니다.
+현재 deploy workflow는 운영 DB write, AGY 요약 실행, scheduler 등록, 서버 재기동을 하지 않습니다. worker 실행 스케줄과 명시적 write 승인 후 실행 단계를 별도로 추가합니다.
 
 ## 저장소 경계
 

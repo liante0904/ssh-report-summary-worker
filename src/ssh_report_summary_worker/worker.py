@@ -26,7 +26,15 @@ class Worker:
                 pdf_path = download_pdf(report.pdf_url, timeout=self.config.pdf_timeout_seconds, min_bytes=self.config.pdf_min_bytes, max_bytes=self.config.pdf_max_bytes, directory=self.config.temp_dir)
                 summary = self.agy.summarize(report, pdf_path)
                 if self.config.dry_run:
-                    item.update(status="dry_run", model=summary.model)
+                    item.update(
+                        status="dry_run",
+                        model=summary.model,
+                        summary=summary.summary,
+                        key_points=summary.key_points,
+                        risks=summary.risks,
+                        source_pages=summary.source_pages,
+                        confidence=summary.confidence,
+                    )
                 else:
                     affected = self.db.save_summary(report.report_id, report.report_unique_key, summary.summary, summary.model)
                     item.update(status="saved" if affected == 1 else "skipped", affected_rows=affected)

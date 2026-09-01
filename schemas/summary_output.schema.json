@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AGY report summary output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report_id", "report_unique_key", "summary", "key_points", "risks", "model", "source_pages", "confidence"],
+  "properties": {
+    "report_id": {"type": "integer", "minimum": 1},
+    "report_unique_key": {"type": "string", "minLength": 1},
+    "summary": {"type": "string", "minLength": 1},
+    "key_points": {"type": "array", "items": {"type": "string"}},
+    "risks": {"type": "array", "items": {"type": "string"}},
+    "model": {"type": "string", "minLength": 1},
+    "source_pages": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+  }
+}

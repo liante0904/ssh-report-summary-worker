@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Summary worker input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report_id", "report_unique_key", "article_title", "firm_nm", "pdf_path"],
+  "properties": {
+    "report_id": {"type": "integer", "minimum": 1},
+    "report_unique_key": {"type": "string", "minLength": 1},
+    "article_title": {"type": "string"},
+    "firm_nm": {"type": "string"},
+    "report_date": {"type": ["string", "null"]},
+    "pdf_url": {"type": "string", "format": "uri"},
+    "pdf_path": {"type": "string", "minLength": 1}
+  }
+}

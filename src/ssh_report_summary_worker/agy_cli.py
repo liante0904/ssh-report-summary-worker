@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import subprocess
 import time
@@ -44,6 +45,9 @@ class AgyClient:
             "--output-format", "json", "--json-schema", str(self.schema_path),
             "--add-dir", str(pdf_path.parent),
         ]
+        log_file = os.getenv("AGY_LOG_FILE")
+        if log_file:
+            command.extend(["--log-file", log_file])
         for attempt in range(self.retries + 1):
             try:
                 completed = subprocess.run(

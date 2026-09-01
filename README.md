@@ -2,7 +2,7 @@
 
 독립 실행형 증권 리포트 PDF 요약 worker의 설계 저장소입니다.
 
-현재 단계에서는 구현 코드, scheduler, Docker 배포, 운영 DB write를 포함하지 않습니다. 기존 `ssh-reports-scraper`와 `ssh_library`는 읽기 전용 참고 대상입니다.
+현재 구현은 scheduler/Docker 배포 없이 단일 batch로 동작합니다. 기본 실행은 dry-run이며, `--write-db`를 명시해야만 검증된 요약을 저장합니다. 기존 `ssh-reports-scraper`와 `ssh_library`의 코드는 복사하지 않습니다.
 
 ## 범위
 
@@ -11,6 +11,34 @@
 - AGY CLI subprocess 호출
 - JSON schema 검증 후 `report_id` 또는 `report_unique_key`로 저장
 - 기본 실행 모드는 `--dry-run`
+
+## 실행
+
+private `ssh_library`를 import할 수 있도록 library checkout을 `PYTHONPATH`에 추가합니다.
+DB 설정은 Git 저장소 밖의
+`/home/ubuntu/secrets/workspace/external.reports-hub/apps/scrapers/ssh-report-summary-worker/secrets.json`
+에서 자동으로 읽습니다. `SUMMARY_SECRET_FILE`로 경로를 바꿀 수 있습니다.
+
+```bash
+PYTHONPATH=/home/ubuntu/workspace/lib/ssh_library:src \
+  python3 -m ssh_report_summary_worker.cli --limit 10
+```
+
+실제 저장은 명시적으로만 활성화합니다.
+
+```bash
+PYTHONPATH=/home/ubuntu/workspace/lib/ssh_library:src \
+  python3 -m ssh_report_summary_worker.cli --limit 10 --write-db
+```
+
+AGY는 설치된 CLI의 print 인터페이스(`agy --print ... --output-format json --json-schema ...`)를 사용합니다. API 호출은 하지 않습니다.
+
+## CI/CD
+
+- `.github/workflows/test.yml`: Python 3.10/3.12 deterministic test gate
+- `.github/workflows/build-artifact.yml`: `main` push 또는 수동 실행 시 테스트 후 source artifact 생성
+
+운영 Docker 배포 workflow는 AGY 실행 파일을 컨테이너에 공급하는 방식과 운영 worker 실행 대상이 확정된 뒤 추가합니다. 현재 CD는 검증된 source artifact 생성까지만 수행하며, 운영 DB write나 서버 재기동은 하지 않습니다.
 
 ## 저장소 경계
 

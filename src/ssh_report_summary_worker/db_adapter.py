@@ -28,12 +28,20 @@ class ReportDbAdapter:
         return self.manager._fetchall(self.read_sql, {"limit": limit, "report_type": self.report_type})
 
     def fetch_by_report_id(self, report_id: int, force: bool = False) -> list[dict[str, Any]]:
-        sql = self.read_sql.replace(
-            "AND report_unique_key IS NOT NULL",
-            "AND report_unique_key IS NOT NULL\n          AND report_id = %(report_id)s",
-        )
-        if force:
-            sql = sql.replace("AND COALESCE(btrim(gemini_summary), '') = ''", "")
+        # An explicit UI request is authoritative. Batch-only filters such as
+        # report_type=COMPANY must not make a clicked report look missing
+        # (e.g. STRATEGY reports still have valid PDFs and can be summarized).
+        sql = """
+            SELECT report_id, report_unique_key, article_title, firm_nm,
+                   report_date, pdf_url
+            FROM public.v_sec_reports_canonical
+            WHERE COALESCE(btrim(pdf_url), '') <> ''
+              AND report_unique_key IS NOT NULL
+              AND report_id = %(report_id)s
+        """
+        if not force:
+            sql += "AND COALESCE(btrim(gemini_summary), '') = ''\n"
+        sql += "LIMIT %(limit)s"
         return self.manager._fetchall(
             sql,
             {"limit": 1, "report_type": self.report_type, "report_id": report_id},
